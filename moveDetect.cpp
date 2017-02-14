@@ -1,33 +1,51 @@
- /**
-*/
-#include <ctime>
 #include <fstream>
+#include <cstdlib>
 #include <iostream>
-#include <raspicam/raspicam.h>
-#include <chrono>
-#include <thread>
+#include "src/raspicam_still.h"
 using namespace std;
- 
-int main ( int argc,char **argv ) {
-    raspicam::RaspiCam Camera; //Cmaera object
-    //Open camera 
-    cout<<"Opening Camera..."<<endl;
-    if ( !Camera.open()) {cerr<<"Error opening camera"<<endl;return -1;}
-    //wait a while until camera stabilizes
-    cout<<"Sleeping for 3 secs"<<endl;
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    //capture
-    Camera.grab();
-    //allocate memory
-    unsigned char *data=new unsigned char[  Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
-    //extract the image in rgb format
-    Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );//get camera image
-    //save
-    std::ofstream outFile ( "raspicam_image.ppm",std::ios::binary );
-    outFile<<"P6\n"<<Camera.getWidth() <<" "<<Camera.getHeight() <<" 255\n";
-    outFile.write ( ( char* ) data, Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB ) );
-    cout<<"Image saved at raspicam_image.ppm"<<endl;
-    //free resrources    
-    delete data;
+
+raspicam::RaspiCam_Still Camera;
+//Returns the value of a param. If not present, returns the defvalue
+float getParamVal ( string id,int argc,char **argv,float defvalue ) {
+    for ( int i=0; i<argc; i++ )
+        if ( id== argv[i] )
+            return atof ( argv[i+1] );
+    return defvalue;
+}
+
+
+//prints program command line usage
+void usage() {
+    cout<<"-w val : sets image width (2592 default)"<<endl;
+    cout<<"-h val : sets image height (1944 default)"<<endl;
+     cout<<"-iso val: set iso [100,800] (400 default)"<<endl;
+}
+
+
+int main ( int argc, char *argv[] ) {
+    usage();
+
+    int width = getParamVal ( "-w",argc,argv,2592 );
+    int height =getParamVal ( "-h",argc,argv,1944 );
+    int iso=getParamVal ( "-iso",argc,argv,400);
+
+
+    cout << "Initializing ..."<<width<<"x"<<height<<endl;
+    Camera.setWidth ( width );
+    Camera.setHeight ( height );
+    Camera.setISO(iso);
+    Camera.setEncoding ( raspicam::RASPICAM_ENCODING_BMP );
+    Camera.open();
+    cout<<"capture"<<endl;
+    unsigned int length = Camera.getImageBufferSize(); // Header + Image Data + Padding
+    unsigned char * data = new unsigned char[length];
+      if ( !Camera.grab_retrieve(data, length) ) {
+        cerr<<"Error in grab"<<endl;
+        return -1;
+    }
+
+    cout<<"saving picture.bmp"<<endl;
+    ofstream file ( "picture.bmp",ios::binary );
+    file.write ( ( char* ) data,   length );
     return 0;
 }
