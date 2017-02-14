@@ -2,6 +2,9 @@
 #include <cstdlib>
 #include <iostream>
 #include "src/raspicam_still.h"
+#include <chrono>
+#include <thread>
+
 using namespace std;
 
 raspicam::RaspiCam_Still Camera;
@@ -36,6 +39,10 @@ int main ( int argc, char *argv[] ) {
     Camera.setISO(iso);
     Camera.setEncoding ( raspicam::RASPICAM_ENCODING_BMP );
     Camera.open();
+    
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    
+    
     cout<<"capture"<<endl;
     unsigned int length = Camera.getImageBufferSize(); // Header + Image Data + Padding
     unsigned char * data = new unsigned char[length];
