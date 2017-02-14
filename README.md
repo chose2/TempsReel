@@ -9,3 +9,4 @@ si le makefile trouve pas mmal_core, mmal_util : exécuter export LIBRARY_PATH=/
 L'exemple simpleppm.ccp enregistre les fichier d'images en .ppm. Gimp est senser etre capable de les ouvrire.
 
 Sinon moveDetect enregistre en bmp
+Git du "driver" https://github.com/cedricve/raspicam
