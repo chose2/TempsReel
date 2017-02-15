@@ -35,10 +35,10 @@ LDFLAGS += -I/usr/local/include -lraspicam -lmmal -lmmal_core -lmmal_util
 all: $(SOURCES) $(TARGET)
  
 $(TARGET): $(OBJECTS)
-	$(CC) --std=c++14 $(OBJECTS) -o $@ $(LDFLAGS)
+	$(CC) --std=c++14 -O3 $(OBJECTS) -o $@ $(LDFLAGS) 
  
 .cpp.o:
-	$(CC) --std=c++14 $(CFLAGS) $(INCLUDES) $< -o $@
+	$(CC) --std=c++14 -O3 $(CFLAGS) $(INCLUDES) $< -o $@
  
 clean:
 	rm $(OBJECTS) $(TARGET)
