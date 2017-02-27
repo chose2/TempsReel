@@ -7,7 +7,7 @@ Télécharger et suiver les instructions
 
 si le makefile trouve pas mmal_core, mmal_util  exécute:  :export LIBRARY_PATH=/opt/vc/lib
 
-##Progresse
+##Progress
 
 simpleppm.ccp enregistre les fichiers d'images en .ppm. Gimp est sensé etre capable de les ouvrirent.
 Cette exemple la utilise juste les fonctions "still" qui semble pas etre faite pour prendre plusieurs images de suite.

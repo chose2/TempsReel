@@ -18,7 +18,7 @@ LDFLAGS = -lpthread
 
 # List of sources:
 INCLUDES= 
-SOURCES = moveDetect.cpp 
+SOURCES = moveDetect.cpp timer.h
 OBJECTS = $(SOURCES:.cpp=.o)
  
 # Name of executable target:
@@ -41,4 +41,4 @@ $(TARGET): $(OBJECTS)
 	$(CC) --std=c++14 -O3 $(CFLAGS) $(INCLUDES) $< -o $@
  
 clean:
-	rm $(OBJECTS) $(TARGET)
+	rm *.o $(TARGET)
