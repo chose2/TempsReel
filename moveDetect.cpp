@@ -65,6 +65,9 @@ bool processCommandLine ( int argc,char **argv,raspicam::RaspiCam &Camera ) {
 
     if ( findParam ( "-col",argc,argv ) !=-1 )
       Camera.setFormat(raspicam::RASPICAM_FORMAT_RGB);
+    else
+      Camera.setFormat(raspicam::RASPICAM_FORMAT_GRAY);
+    
 
     if ( findParam ( "-yuv",argc,argv ) !=-1 ) 
       Camera.setFormat(raspicam::RASPICAM_FORMAT_YUV420);
@@ -138,7 +141,7 @@ int main ( int argc,char **argv ) {
         }while(++i<nFramesCaptured || nFramesCaptured==0);
         timer.end();
 
-        cout<< endl<< timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<endl;
+        cout<< timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<endl;
         
         Camera.release();
     }else{
