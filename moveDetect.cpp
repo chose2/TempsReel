@@ -117,9 +117,7 @@ int main ( int argc,char **argv ) {
   
     cout<<"Connecting to camera"<<endl;
     
-    if ( !Camera.open() ) {
-        cout<<"Error opening camera, skipping capture loop"<<endl;
-    }else{
+    if ( Camera.open() ) {
         cout<<"Connected to camera ="<<Camera.getId() <<" bufs="<<Camera.getImageBufferSize( )<<endl;
         size_t i=0;
         timer.start();
@@ -140,11 +138,12 @@ int main ( int argc,char **argv ) {
         }while(++i<nFramesCaptured || nFramesCaptured==0);
         timer.end();
 
-        cout<< timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<endl;
+        cout<< endl<< timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<endl;
         
         Camera.release();
+    }else{
+        cout<<"Error opening camera, skipping capture loop"<<endl;
     }
-
     cout <<"Closing normaly"<<endl;
 }
 
