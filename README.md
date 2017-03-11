@@ -32,6 +32,8 @@ Librairy utilisé : https://github.com/cedricve/raspicam
 Format d'image: http://netpbm.sourceforge.net/doc/ppm.html et http://netpbm.sourceforge.net/doc/pgm.html
 
 Detection d'image :
+http://codeding.com/articles/motion-detection-algorithm (this one is implemented)
+
 http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
 
 http://stackoverflow.com/questions/10487152/comparing-two-images-for-motion-detecting-purposes
