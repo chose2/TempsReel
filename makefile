@@ -18,7 +18,7 @@ LDFLAGS = -lpthread
 
 # List of sources:
 INCLUDES= 
-SOURCES = moveDetect.cpp timer.h
+SOURCES = moveDetect.cpp timer.h cameraInterface.h utils.h
 OBJECTS = $(SOURCES:.cpp=.o)
  
 # Name of executable target:
