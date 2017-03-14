@@ -15,6 +15,7 @@
 */
 #include <iostream>
 #include "cameraInterface.h"
+#include "rpiPWM1.h"
 using namespace std;
 
 
@@ -26,10 +27,12 @@ int main ( int argc,char **argv ) {
     Timer timer;
     CameraInterface camInterface(argc,argv);
 
+    rpiPWM1 pwm(50.0, 1024, 7.5, rpiPWM1::MSMODE);
+    usleep(2000000); //let the camera to be place to it's neutral position
+	
     //Capture loop
     camInterface.loop();
     
-
     //Test detection on 2 saved files
     cout <<"Closing normaly"<<endl;
 }
