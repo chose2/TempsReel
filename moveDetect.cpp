@@ -17,6 +17,7 @@
 #include "cameraInterface.h"
 #include "rpiPWM1.h"
 #include <GL/glut.h>
+#include <cstdlib>
 using namespace std;
 
 int window(0);                          // Glut window identifier
@@ -25,8 +26,8 @@ CameraInterface *globalCam;
 
 void DrawGLScene()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
-    /*std::vector<uint8_t> currentRgb;
+    /*glClear(GL_COLOR_BUFFER_BIT);
+    std::vector<uint8_t> currentRgb;
 
     glPointSize(2.0f);
     glBegin(GL_POINTS);
@@ -64,9 +65,9 @@ void DrawGLScene()
     }
 
 
-    glEnd();*/
+    glEnd();
 
-    glutSwapBuffers();
+    glutSwapBuffers();*/
 }
 
 /*void resizeGLScene(int width, int height)
@@ -97,7 +98,7 @@ int main ( int argc,char **argv ) {
 	if(camInterface.UseHelperWindow){
 		if(camInterface.init())	{
 			globalCam = &camInterface;
-			glutInit(&argc, argv);
+			/*glutInit(&argc, argv);
 			glutInitDisplayMode(GLUT_RGB);
 			glutInitWindowSize(640, 480);
 			glutInitWindowPosition(0, 0);
@@ -118,7 +119,7 @@ int main ( int argc,char **argv ) {
 			//glutReshapeFunc(&resizeGLScene);
 
 			glutMainLoop();	
-	
+	*/
 			camInterface.release();
 		}
 	}else{

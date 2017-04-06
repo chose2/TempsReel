@@ -4,7 +4,7 @@
 #include <ctime>
 #include <cstdlib>
 
-enum SETTING{
+enum {
     //Camera settings
 	WIDTH = 640,
 	HEIGHT = 480,
