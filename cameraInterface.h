@@ -49,8 +49,9 @@ class CameraInterface{
 
         Blob blobs[MAXBLOB];
         size_t currentblobIndex = 0;
-
-
+		
+		bool firstFrame = true;
+		
         /*
         * Process all suported options on the command line and inits the camera. 
         * Currently defaults to black and white (only suported algo right now)
@@ -156,19 +157,18 @@ public:
         }
 
     }
-
 	//minimaliste loop
 	void runLoop() {
 		this->Camera.grab();
 		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
 
-		if(i != 0){
+		if(firstFrame){
 			//detect le movement dans lancient shot et l'actuel
 			 detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
 							tampons.data[currentTamponIndex], 
 							Camera);
 		}
-
+		firstFrame = false;
 		currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);
 	}
 	
