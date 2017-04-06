@@ -4,8 +4,7 @@
 #include <ctime>
 #include <cstdlib>
 
-
-enum {
+enum SETTING{
     //Camera settings
 	WIDTH = 640,
 	HEIGHT = 480,
@@ -90,14 +89,28 @@ class CameraInterface{
         }
 
 public:
-    
+    bool UseHelperWindow = true;
 
     CameraInterface(int argc,char **argv){
         this->processCommandLine(argc, argv);
   
     }
 
+	bool init()	{
+		if ( this->Camera.open() ) {
+        	settle(Camera);	
+			std::cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<std::endl;			
+			return true;
+        }else{
+            std::cout <<"Error opening this->camera, skipping capture loop"<<std::endl;
+			return false;
+        }
+	}
 
+	void release()	{
+		this->Camera.release();
+	}
+	
     void loop(){
      	size_t i=0;  
         if ( this->Camera.open() ) {
@@ -144,6 +157,21 @@ public:
 
     }
 
+	//minimaliste loop
+	void runLoop {
+		this->Camera.grab();
+		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
+
+		if(i != 0){
+			//detect le movement dans lancient shot et l'actuel
+			 detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
+							tampons.data[currentTamponIndex], 
+							Camera);
+		}
+
+		currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);
+	}
+	
      /*
      *Detection dun groupe de MINSIZEBLOB de large minimum. De haut en bas vers la droite
      */

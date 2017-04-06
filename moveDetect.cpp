@@ -16,9 +16,72 @@
 #include <iostream>
 #include "cameraInterface.h"
 #include "rpiPWM1.h"
+#include <GL/glut.h>
 using namespace std;
 
+int window(0);                          // Glut window identifier
 
+/*void DrawGLScene()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    std::vector<uint8_t> currentRgb;
+
+    glPointSize(2.0f);
+    glBegin(GL_POINTS);
+
+    //Real time cam
+    currentRgb = DecodeurScene.rgb;
+    realTimeDepth = DecodeurScene.depth;
+
+    if (!color) glColor3ub(255, 255, 255);
+
+    if(!currentRgb.empty() && !realTimeDepth.empty())
+    {
+        float HauteurMax = std::stof(ConfigHelper.GetString("HAUTEUR_MAX"));
+        float HauteurMin = std::stof(ConfigHelper.GetString("HAUTEUR_MIN"));
+        float HauteurKin = std::stof(ConfigHelper.GetString("HAUTEUR_KINECT"));
+        float f = 595.f;
+        for (size_t i = 0; i < realTimeDepth.size(); ++i)
+        {
+            Vector3 vec = Vector3((i%IR_CAMERA_RESOLUTION_X - (IR_CAMERA_RESOLUTION_X-1)/2.f) * realTimeDepth[i] / f,
+                                  (-(i/IR_CAMERA_RESOLUTION_X - (IR_CAMERA_RESOLUTION_Y-1)/2.f) * realTimeDepth[i] / f) + HauteurKin,
+                                  -realTimeDepth[i]);
+
+            if(vec.y > HauteurMax || vec.y < HauteurMin )
+            {
+                continue;
+            }
+            if (color)
+                glColor3ub( currentRgb[3*i+0],    // R
+                            currentRgb[3*i+1],    // G
+                            currentRgb[3*i+2]);   // B
+
+            vec = DecodeurScene.RealCam.matrixToWorld * vec;
+            glVertex3f(vec.x, vec.y, vec.z);
+        }
+    }
+
+
+    glEnd();
+
+    glutSwapBuffers();
+}*/
+
+/*void resizeGLScene(int width, int height)
+{
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(50.0, (float)width / height, 90.0, 110000.0);
+
+    glMatrixMode(GL_MODELVIEW);
+}*/
+
+void idleGLScene(CameraInterface& cam)
+{
+    cam.RunLoop();
+    glutPostRedisplay();
+}
 
 /*
 * Currently: saves some photos in the main loop and runs detectMovement on 2 previously saved pictured 
