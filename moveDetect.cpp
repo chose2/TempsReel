@@ -82,8 +82,8 @@ void DrawGLScene()
 
 void idleGLScene()
 {
-    globalCam->runLoop();
-    glutPostRedisplay();
+    /*globalCam->runLoop();
+    glutPostRedisplay();*/
 }
 /*
 * Currently: saves some photos in the main loop and runs detectMovement on 2 previously saved pictured 
