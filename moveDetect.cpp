@@ -79,7 +79,7 @@ int window(0);                          // Glut window identifier
 
 void idleGLScene(CameraInterface& cam)
 {
-    cam.RunLoop();
+    cam.runLoop();
     glutPostRedisplay();
 }
 
