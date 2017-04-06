@@ -13,11 +13,11 @@ enum {
 
 
     //Movement detection parameters
-    MAXBLOB=5,
+    MAXBLOB=3,
     NBTAMPON=2,
     FOREGROUND = 255,
     BACKGROUND = 0,
-    TRESHOLD = 18,
+    TRESHOLD = 50,
     NOISEFILTER = 3,
     MINSIZEBLOB = 50
 };
@@ -74,11 +74,19 @@ class CameraInterface{
             this->Camera.setFormat(raspicam::RASPICAM_FORMAT_GRAY);
             
 
-            if ( utils.findParam ( "-yuv",argc,argv ) !=-1 ) 
+            if ( utils.findParam ( "-yuv",argc,argv ) !=-1 ) {
             this->Camera.setFormat(raspicam::RASPICAM_FORMAT_YUV420);
+ 
+            }
 
             this->Camera.setAWB_RB(utils.getParamVal("-awb_b",argc,argv ,1), utils.getParamVal("-awb_g",argc,argv ,1));
             nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,100);
+        }
+        //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
+        void settle(raspicam::RaspiCam &Camera){
+      		for(int i=0; i<100; i++){
+        		this->Camera.grab();
+        	}
         }
 
 public:
@@ -86,14 +94,15 @@ public:
 
     CameraInterface(int argc,char **argv){
         this->processCommandLine(argc, argv);
+  
     }
 
 
     void loop(){
-        sleep(3);
+     	size_t i=0;  
         if ( this->Camera.open() ) {
+        	settle(Camera);	
                 std::cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<std::endl;
-                size_t i=0;
                 timer.start();
                 do{
                     this->Camera.grab();
@@ -128,7 +137,7 @@ public:
 
                 timer.end();
                 std::cout << timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<std::endl;
-                this->Camera.release();
+                this->Camera.release();		
         }else{
             std::cout <<"Error opening this->camera, skipping capture loop"<<std::endl;
         }
@@ -139,8 +148,8 @@ public:
      *Detection dun groupe de MINSIZEBLOB de large minimum. De haut en bas vers la droite
      */
     void detectBlob(unsigned char mouvement[]){
-        std::stringstream  step2;
-        step2<<"movement2.pgm";
+        std::stringstream  nomImage;
+        
         int blobBorder;
         bool blobdetected = false;
         int index=0;
@@ -166,7 +175,7 @@ public:
                         if(mouvement[blobBorder] != FOREGROUND )
                             break;
                     }
-                    //Si le blob était de taille suffirance, save
+                    //Si le blob était de taille suffirance, save
                     if(blobBorder - index >= MINSIZEBLOB){
                         blobs[currentblobIndex].topX = index % WIDTH;
                         blobs[currentblobIndex].topY = index / WIDTH;
@@ -180,6 +189,9 @@ public:
         
         //Si on vien detecter un nouveau blob
         if(blobdetected){
+        	nomImage.str("");
+        	nomImage << "blob" << currentblobIndex << ".pgm";
+        	utils.saveImagePGM ( nomImage.str(), mouvement, this->Camera );
             //Si on a rempli notre tableau de blob, analyse, sinon continue de remplir le tableau de blob
             if(currentblobIndex == MAXBLOB - 1){
                 //compareBlob();
@@ -191,7 +203,7 @@ public:
                 }else{
                     std::cout << " BLOB IS GOING right " << std::endl;
                 }
-                utils.saveImagePGM ( step2.str(), mouvement, this->Camera );
+                
 
                 //Reset tableau de blob
                 currentblobIndex=0;
