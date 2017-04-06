@@ -158,7 +158,7 @@ public:
     }
 
 	//minimaliste loop
-	void runLoop {
+	void runLoop() {
 		this->Camera.grab();
 		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
 
