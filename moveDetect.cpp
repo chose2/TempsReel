@@ -77,12 +77,12 @@ void DrawGLScene()
     glMatrixMode(GL_MODELVIEW);
 }*/
 
-void idleGLScene(CameraInterface& cam)
+void idleGLScene()
 {
-    cam.runLoop();
+    globalCam->runLoop();
     glutPostRedisplay();
 }
-
+CameraInterface *globalCam;
 /*
 * Currently: saves some photos in the main loop and runs detectMovement on 2 previously saved pictured 
 */
@@ -95,9 +95,10 @@ int main ( int argc,char **argv ) {
 	
 	if(camInterface.UseHelperWindow){
 		if(camInterface.init())	{
+			globalCam = &camInterface;
 			glutInit(&argc, argv);
 			glutInitDisplayMode(GLUT_RGB);
-			glutInitWindowSize(SETTING.WIDTH, SETTING.HEIGHT);
+			glutInitWindowSize(640, 480);
 			glutInitWindowPosition(0, 0);
 
 			window = glutCreateWindow("Camera Espionne Russe");
