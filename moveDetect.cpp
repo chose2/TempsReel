@@ -21,10 +21,10 @@ using namespace std;
 
 int window(0);                          // Glut window identifier
 
-/*void DrawGLScene()
+void DrawGLScene()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    std::vector<uint8_t> currentRgb;
+    /*std::vector<uint8_t> currentRgb;
 
     glPointSize(2.0f);
     glBegin(GL_POINTS);
@@ -62,10 +62,10 @@ int window(0);                          // Glut window identifier
     }
 
 
-    glEnd();
+    glEnd();*/
 
     glutSwapBuffers();
-}*/
+}
 
 /*void resizeGLScene(int width, int height)
 {
@@ -93,8 +93,36 @@ int main ( int argc,char **argv ) {
     rpiPWM1 pwm(50.0, 1024, 7.5, rpiPWM1::MSMODE);
     usleep(2000000); //let the camera to be place to it's neutral position
 	
-    //Capture loop
-    camInterface.loop();
+	if(camInterface.UseHelperWindow){
+		if(camInterface.init())	{
+			glutInit(&argc, argv);
+			glutInitDisplayMode(GLUT_RGB);
+			glutInitWindowSize(SETTING.WIDTH, SETTING.HEIGHT);
+			glutInitWindowPosition(0, 0);
+
+			window = glutCreateWindow("Camera Espionne Russe");
+			glClearColor(0.45f, 0.45f, 0.45f, 0.0f);
+
+			glEnable(GL_ALPHA_TEST);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glAlphaFunc(GL_GREATER, 0.0f);
+
+			glMatrixMode(GL_PROJECTION);
+			gluPerspective(50.0, 1.0, 900.0, 11000.0);
+
+			glutDisplayFunc(&DrawGLScene);
+			glutIdleFunc(&idleGLScene);
+			//glutReshapeFunc(&resizeGLScene);
+
+			glutMainLoop();	
+	
+			camInterface.release();
+		}
+	}else{
+		//Capture loop
+		camInterface.loop();
+	}
     
     //Test detection on 2 saved files
     cout <<"Closing normaly"<<endl;
