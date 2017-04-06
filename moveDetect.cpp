@@ -21,6 +21,8 @@ using namespace std;
 
 int window(0);                          // Glut window identifier
 
+CameraInterface *globalCam;
+
 void DrawGLScene()
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -82,7 +84,6 @@ void idleGLScene()
     globalCam->runLoop();
     glutPostRedisplay();
 }
-CameraInterface *globalCam;
 /*
 * Currently: saves some photos in the main loop and runs detectMovement on 2 previously saved pictured 
 */
