@@ -28,7 +28,38 @@ unsigned char data[TAILLE_BLOC];
 
 void DrawGLScene()
 {
-	globalCam->ShowMeWhatYouGot(data);
+	
+    //create test checker image
+    globalCam->ShowMeWhatYouGot(data);
+    /*unsigned char texDat[64];
+    for (int i = 0; i < 64; ++i)
+        texDat[i] = ((i + (i / 8)) % 2) * 128 + 127;
+*/
+    //upload to GPU texture
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, WIDTH, HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glEnable(GL_TEXTURE_2D);
+    glBegin(GL_QUADS);
+    glTexCoord2i(0, 0); glVertex2i(0, 0);
+    glTexCoord2i(0, 1); glVertex2i(0, HEIGHT);
+    glTexCoord2i(1, 1); glVertex2i(WIDTH, HEIGHT);
+    glTexCoord2i(1, 0); glVertex2i(WIDTH, 0);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    
+    
+	/*globalCam->ShowMeWhatYouGot(data);
     glClear(GL_COLOR_BUFFER_BIT);
     //std::vector<uint8_t> currentRgb;
 
@@ -38,7 +69,7 @@ void DrawGLScene()
 	for(int i = 0; i< TAILLE_BLOC; ++i)
 	{
 		glColor3ub(data[i], data[i], data[i]);
-	}
+	}*/
 /*
     //Real time cam
     currentRgb = DecodeurScene.rgb;
@@ -109,7 +140,7 @@ int main ( int argc,char **argv ) {
 		if(camInterface.init())	{
 			globalCam = &camInterface;
 			glutInit(&argc, argv);
-			glutInitDisplayMode(GLUT_RGB);
+			glutInitDisplayMode(GLUT_RGBA);
 			glutInitWindowSize(WIDTH, HEIGHT);
 			glutInitWindowPosition(0, 0);
 
@@ -121,14 +152,16 @@ int main ( int argc,char **argv ) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glAlphaFunc(GL_GREATER, 0.0f);
 
-			glMatrixMode(GL_PROJECTION);
-			//gluPerspective(50.0, 1.0, 900.0, 11000.0);
+			glMatrixMode(GL_PROJECTION); 			
+    			glOrtho(0, WIDTH, 0, HEIGHT, -1, 1);
+    			glMatrixMode(GL_MODELVIEW);
 
 			glutDisplayFunc(&DrawGLScene);
 			glutIdleFunc(&idleGLScene);
 			//glutReshapeFunc(&resizeGLScene);
 
 			glutMainLoop();	
+			
 			camInterface.release();
 		}
 	}else{

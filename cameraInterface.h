@@ -112,7 +112,7 @@ public:
 	{
 		for(int i =0 ; i < TAILLE_BLOC; ++i)
 		{
-			outData[i] = tampons.data[i];
+			outData[i] = tampons.data[0][i];
 		}
 	}
 	
