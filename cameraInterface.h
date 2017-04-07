@@ -108,7 +108,7 @@ public:
         }
 	}
 
-	void ShowMeWhatYouGot(char &outData)
+	void ShowMeWhatYouGot(unsigned char *outData)
 	{
 		for(int i =0 ; i < TAILLE_BLOC; ++i)
 		{

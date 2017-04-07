@@ -30,7 +30,7 @@ void DrawGLScene()
 {
 	globalCam->ShowMeWhatYouGot(data);
     glClear(GL_COLOR_BUFFER_BIT);
-    std::vector<uint8_t> currentRgb;
+    //std::vector<uint8_t> currentRgb;
 
     glPointSize(1.0f);
     glBegin(GL_POINTS);
