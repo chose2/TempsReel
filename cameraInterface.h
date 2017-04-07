@@ -169,7 +169,7 @@ public:
 		this->Camera.grab();
 		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
 
-		if(firstFrame){
+		if(!firstFrame){
 			//detect le movement dans lancient shot et l'actuel
 			 detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
 							tampons.data[currentTamponIndex], 
@@ -294,6 +294,7 @@ public:
 
  
         if(totalMarked !=0){
+            std::cout << " BLOB detected Marked: " << totalMarked << std::endl;
             detectBlob(blackWhite.data[1]);
         }
        
