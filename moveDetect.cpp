@@ -112,7 +112,7 @@ int main ( int argc,char **argv ) {
 			glAlphaFunc(GL_GREATER, 0.0f);
 
 			glMatrixMode(GL_PROJECTION);
-			gluPerspective(50.0, 1.0, 900.0, 11000.0);
+			//gluPerspective(50.0, 1.0, 900.0, 11000.0);
 
 			glutDisplayFunc(&DrawGLScene);
 			glutIdleFunc(&idleGLScene);

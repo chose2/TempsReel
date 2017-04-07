@@ -13,8 +13,8 @@
  
 # Set up basic variables:
 CC = g++ -lGL -lglut 
-CFLAGS = -c -Wall /usr/local/lib
-LDFLAGS = -lpthread /usr/local/lib
+CFLAGS = -c -Wall
+LDFLAGS = -lpthread
 
 # List of sources:
 INCLUDES= 
