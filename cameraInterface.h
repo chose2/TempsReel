@@ -108,11 +108,9 @@ public:
         }
 	}
 
-	void ShowMeWhatYouGot(unsigned char *outData)
-	{
-		for(int i =0 ; i < TAILLE_BLOC; ++i)
-		{
-			outData[i] = tampons.data[0][i];
+	void ShowMeWhatYouGot(unsigned char *outData){		
+		for(int i = 0; i < TAILLE_BLOC; ++i){
+			outData[i] = tampons.data[currentTamponIndex][i];
 		}
 	}
 	
