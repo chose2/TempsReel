@@ -24,14 +24,22 @@ int window(0);                          // Glut window identifier
 
 CameraInterface *globalCam;
 
+unsigned char data[TAILLE_BLOC];
+
 void DrawGLScene()
 {
+	globalCam->ShowMeWhatYouGot(data);
     glClear(GL_COLOR_BUFFER_BIT);
-    /*std::vector<uint8_t> currentRgb;
+    std::vector<uint8_t> currentRgb;
 
-    glPointSize(2.0f);
+    glPointSize(1.0f);
     glBegin(GL_POINTS);
-
+	
+	for(int i = 0; i< TAILLE_BLOC; ++i)
+	{
+		glColor3ub(data[i], data[i], data[i]);
+	}
+/*
     //Real time cam
     currentRgb = DecodeurScene.rgb;
     realTimeDepth = DecodeurScene.depth;
@@ -64,10 +72,11 @@ void DrawGLScene()
         }
     }
 
-
+*/
+	
     glEnd();
 
-    glutSwapBuffers();*/
+    glutSwapBuffers();
 }
 
 /*void resizeGLScene(int width, int height)
@@ -82,8 +91,8 @@ void DrawGLScene()
 
 void idleGLScene()
 {
-    /*globalCam->runLoop();
-    glutPostRedisplay();*/
+    globalCam->runLoop();
+    glutPostRedisplay();
 }
 /*
 * Currently: saves some photos in the main loop and runs detectMovement on 2 previously saved pictured 
@@ -101,7 +110,7 @@ int main ( int argc,char **argv ) {
 			globalCam = &camInterface;
 			glutInit(&argc, argv);
 			glutInitDisplayMode(GLUT_RGB);
-			glutInitWindowSize(640, 480);
+			glutInitWindowSize(WIDTH, HEIGHT);
 			glutInitWindowPosition(0, 0);
 
 			window = glutCreateWindow("Camera Espionne Russe");

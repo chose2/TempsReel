@@ -108,6 +108,14 @@ public:
         }
 	}
 
+	void ShowMeWhatYouGot(&char outData)
+	{
+		for(int i =0 i < TAILLE_BLOC; ++i)
+		{
+			outData[i] = data[i];
+		}
+	}
+	
 	void release()	{
 		this->Camera.release();
 	}
