@@ -45,6 +45,7 @@ class CameraInterface{
         unsigned int nFramesCaptured;
 
         Tampons tampons;
+		Tampons blackWhite;
         size_t currentTamponIndex = 0;
 
         Blob blobs[MAXBLOB];
@@ -110,7 +111,7 @@ public:
 
 	void ShowMeWhatYouGot(unsigned char *outData){		
 		for(int i = 0; i < TAILLE_BLOC; ++i){
-			outData[i] = tampons.data[currentTamponIndex][i];
+			outData[i] = blackWhite.data[currentTamponIndex][i];
 		}
 	}
 	
@@ -255,11 +256,11 @@ public:
         unsigned int marked = 0;
         unsigned int totalMarked = 0;        
 
-        Tampons output;
+        //Tampons output;
         //first-pass: difference and threshold filter (mark the pixels that are changed between two frames)
         for (unsigned int x = 0; x < WIDTH * HEIGHT; x++){
             unsigned int diff = abs(image1[x] - image2[x] );
-            output.data[0][x] = (diff >= TRESHOLD ? FOREGROUND : BACKGROUND);
+            blackWhite.data[0][x] = (diff >= TRESHOLD ? FOREGROUND : BACKGROUND);
         }
 
         //second-pass: erosion filter (remove noise i.e. ignore minor differences between two frames)
@@ -273,7 +274,7 @@ public:
                         if(i < 0 || j < 0 || i > WIDTH || j > HEIGHT * WIDTH ){
                             continue;
                         }else{
-                            marked += (output.data[0][i+j] == FOREGROUND ? 1 : 0);
+                            marked += (blackWhite.data[0][i+j] == FOREGROUND ? 1 : 0);
                         } 
                     }
                 }
@@ -284,7 +285,7 @@ public:
                     for (int i = x - n; i < x + n; i++){
                     //j == colonne actuel -n vas sjusqua colonne+n
                         for (int j = y - n*WIDTH; j < y + n*WIDTH; j+= WIDTH){
-                                output.data[1][i+j] = FOREGROUND;
+                                blackWhite.data[1][i+j] = FOREGROUND;
                         }
                     }
                 }
