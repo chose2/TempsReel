@@ -108,11 +108,11 @@ public:
         }
 	}
 
-	void ShowMeWhatYouGot(&char outData)
+	void ShowMeWhatYouGot(char &outData)
 	{
-		for(int i =0 i < TAILLE_BLOC; ++i)
+		for(int i =0 ; i < TAILLE_BLOC; ++i)
 		{
-			outData[i] = data[i];
+			outData[i] = tampons.data[i];
 		}
 	}
 	
