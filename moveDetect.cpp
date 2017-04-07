@@ -98,7 +98,7 @@ int main ( int argc,char **argv ) {
 	if(camInterface.UseHelperWindow){
 		if(camInterface.init())	{
 			globalCam = &camInterface;
-			/*glutInit(&argc, argv);
+			glutInit(&argc, argv);
 			glutInitDisplayMode(GLUT_RGB);
 			glutInitWindowSize(640, 480);
 			glutInitWindowPosition(0, 0);
@@ -119,7 +119,6 @@ int main ( int argc,char **argv ) {
 			//glutReshapeFunc(&resizeGLScene);
 
 			glutMainLoop();	
-	*/
 			camInterface.release();
 		}
 	}else{

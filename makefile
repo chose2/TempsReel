@@ -12,7 +12,7 @@
 #
  
 # Set up basic variables:
-CC = g++
+CC = g++ -lGL -lglut 
 CFLAGS = -c -Wall /usr/local/lib
 LDFLAGS = -lpthread /usr/local/lib
 
