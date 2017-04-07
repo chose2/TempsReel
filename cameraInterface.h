@@ -294,7 +294,7 @@ public:
 
  
         if(totalMarked !=0){
-            detectBlob(output.data[1]);
+            detectBlob(blackWhite.data[1]);
         }
        
 
