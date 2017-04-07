@@ -96,6 +96,7 @@ int main ( int argc,char **argv ) {
     usleep(2000000); //let the camera to be place to it's neutral position
 	
 	if(camInterface.UseHelperWindow){
+		cout <<"Demarre fenetre de debug"<<endl;
 		if(camInterface.init())	{
 			globalCam = &camInterface;
 			glutInit(&argc, argv);
