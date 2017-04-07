@@ -26,8 +26,8 @@ CameraInterface *globalCam;
 
 void DrawGLScene()
 {
-    /*glClear(GL_COLOR_BUFFER_BIT);
-    std::vector<uint8_t> currentRgb;
+    glClear(GL_COLOR_BUFFER_BIT);
+    /*std::vector<uint8_t> currentRgb;
 
     glPointSize(2.0f);
     glBegin(GL_POINTS);
