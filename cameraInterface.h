@@ -128,7 +128,7 @@ class CameraInterface{
 		{			
 			if(currentAngle + angle > MINANGLE && currentAngle + angle < MAXANGLE)
 			{
-				currentAngle += angle
+				currentAngle += angle;
 				servoMoteur.setDutyCycle(angleToPulseWidth(currentAngle));
 			}
 		}
