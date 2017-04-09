@@ -9,6 +9,7 @@ enum {
 	WIDTH = 640,
 	HEIGHT = 480,
 	TAILLE_BLOC = WIDTH * HEIGHT,
+    MIDDLE = WIDTH / 2,
 
 
     //Movement detection parameters
@@ -16,9 +17,8 @@ enum {
     NBTAMPON=2,
     FOREGROUND = 255,
     BACKGROUND = 0,
-    TRESHOLD = 50,
+    TRESHOLD = 18,
     NOISEFILTER = 3,
-    MINSIZEBLOB = 50
 };
 
 enum DIRECTION{
@@ -33,7 +33,7 @@ struct Tampons {
 };
 
 struct Blob {
-	unsigned int topX=0, topY=0, bottomX=0, bottom=0;
+	unsigned int topX=0, topY=0, moyX=0 ;
 };
 
 class CameraInterface{
@@ -111,7 +111,7 @@ public:
 
 	void ShowMeWhatYouGot(unsigned char *outData){		
 		for(int i = 0; i < TAILLE_BLOC; ++i){
-			outData[i] = blackWhite.data[currentTamponIndex][i];
+			outData[i] = blackWhite.data[1][i];
 		}
 	}
 	
@@ -136,24 +136,8 @@ public:
                                         tampons.data[currentTamponIndex], 
                                         Camera);
                     }
-                    
-                   /*if ( i%5==0 ) 
-                        std::cout <<"\r capturing ..."<<i<<"/"<<nFramesCaptured<<std::flush;
-                    //save image every 30 images
-                    if ( i%30==0 && i!=0  && nFramesCaptured>0 ) { 
-                        std::stringstream fn, fn2;
-                        fn<<"imageStartPoint"<<i<<".pgm";
-                        utils.saveImagePGM ( fn.str(), reinterpret_cast<unsigned char *> (&tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1]) ,this->Camera );
-                        std::cout <<"Saving "<<fn.str()<<std::endl;
-                      
-                        fn2<<"imageEndPoint"<<i<<".pgm";
-                        utils.saveImagePGM ( fn2.str(), reinterpret_cast<unsigned char *> (&tampons.data[currentTamponIndex]) ,this->Camera );
-                        std::cout <<"Saving "<<fn2.str()<<std::endl;
-                    }*/
-
                     currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);
 
-                
                 }while(++i<nFramesCaptured || nFramesCaptured==0);
 
                 timer.end();
@@ -183,63 +167,29 @@ public:
      *Detection dun groupe de MINSIZEBLOB de large minimum. De haut en bas vers la droite
      */
     void detectBlob(unsigned char mouvement[]){
-        std::stringstream  nomImage;
-        
-        int blobBorder;
-        bool blobdetected = false;
-        int index=0;
-
-        /*old --  top  to right to bottom
-        for (unsigned int x = 0; x < WIDTH * HEIGHT; x++){  
-        index = x;
-        */
-        for ( int x = 0; x < WIDTH && !blobdetected; x++){
-            for(int y = 0; y < WIDTH * HEIGHT && !blobdetected; y+= WIDTH){
-                index = x+y;
-                if(mouvement[index] == FOREGROUND){
-                    //Si trop proche du bord de l'image ignore.
-                    if(index % WIDTH < 45 ||  index % WIDTH > WIDTH - MINSIZEBLOB){
-                        continue;
-                    }
-                        
-                    
-                    
-                    //vefifie que c'est pas un pixel tout seul
-                    int limit = index + MINSIZEBLOB;
-                    for(blobBorder = index; blobBorder < WIDTH * HEIGHT && blobBorder < limit ; ++blobBorder){
-                        if(mouvement[blobBorder] != FOREGROUND )
-                            break;
-                    }
-                    //Si le blob était de taille suffirance, save
-                    if(blobBorder - index >= MINSIZEBLOB){
-                        blobs[currentblobIndex].topX = index % WIDTH;
-                        blobs[currentblobIndex].topY = index / WIDTH;
-                        //std::cout << std::endl << "blob detected :"  << (int) currentblobIndex <<  std::cout << " at point  :" << index % WIDTH  <<  ", " << index / WIDTH << " de size " << blobBorder - index << std::endl;
-                        blobdetected = true;
-                        break;
-                    }
+        long int totalX = 0;
+        int totalMarked = 0; 
+        for ( int x = 0; x < WIDTH; x++){
+            for(int y = 0; y < WIDTH * HEIGHT; y+= WIDTH){
+                if(mouvement[x+y] == FOREGROUND){
+                    totalX += x; 
+                    totalMarked++;
                 }
             }
         }
-        
-        //Si on vien detecter un nouveau blob
-        if(blobdetected){
-        	nomImage.str("");
-        	nomImage << "blob" << currentblobIndex << ".pgm";
-        	utils.saveImagePGM ( nomImage.str(), mouvement, this->Camera );
-            //Si on a rempli notre tableau de blob, analyse, sinon continue de remplir le tableau de blob
+        //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480)
+        if(totalMarked >= 3072){
+            blobs[currentblobIndex].moyX = totalX / totalMarked;
+            std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){
                 //compareBlob();
-                std::cout << "Blob full, Current blob :"  << (int) currentblobIndex  << " previous point  :" << blobs[0].topX << " current "<< blobs[currentblobIndex].topX << std::endl;
-                if(blobs[MAXBLOB - 1].topX == blobs[0].topX){
-                    std::cout << " BLOB IS STILL " << std::endl;
-                }else if(blobs[MAXBLOB -1].topX < blobs[0].topX){
-                    std::cout << " BLOB IS GOING LEFT " << std::endl;
+                if(blobs[MAXBLOB - 1].moyX > blobs[0].moyX){
+                    std::cout << " BLOB IS RIGHT " << " adjust " <<  (MIDDLE + blobs[MAXBLOB -1].moyX ) << std::endl;
+                }else if(blobs[MAXBLOB -1].moyX < blobs[0].moyX){
+                    std::cout << " BLOB IS GOING LEFT " << " adjust minus " <<  (MIDDLE - blobs[MAXBLOB -1].moyX)  << std::endl;     
                 }else{
-                    std::cout << " BLOB IS GOING right " << std::endl;
+                    std::cout << " BLOB IS GOING STILL " << std::endl;
                 }
-                
-
                 //Reset tableau de blob
                 currentblobIndex=0;
             }else{
@@ -256,9 +206,13 @@ public:
         unsigned int marked = 0;
         unsigned int totalMarked = 0;        
 
+
+
         //Tampons output;
         //first-pass: difference and threshold filter (mark the pixels that are changed between two frames)
         for (unsigned int x = 0; x < WIDTH * HEIGHT; x++){
+            //Profite du loop pour reset la partie erosion filter
+            blackWhite.data[1][x] = BACKGROUND;
             unsigned int diff = abs(image1[x] - image2[x] );
             blackWhite.data[0][x] = (diff >= TRESHOLD ? FOREGROUND : BACKGROUND);
         }
@@ -294,27 +248,8 @@ public:
 
  
         if(totalMarked !=0){
-            std::cout << " BLOB detected Marked: " << totalMarked << std::endl;
+            //std::cout << " BLOB detected Marked: " << totalMarked << std::endl;
             detectBlob(blackWhite.data[1]);
         }
-       
-
     }
-/*  to use when final
-    void compareBlob(){
-        if(blobs[MAXBLOB -1].topX == blobs[0].topX){
-            std::cout << " BLOB IS STILL " << std::endl;
-        }else if(blobs[MAXBLOB -1].topX < blobs[0].topX){
-            std::cout << " BLOB IS GOING LEFT " << std::endl;
-        }else{
-            std::cout << " BLOB IS GOING right " << std::endl;
-        }
-    }*/
-
-
 };
-
-       /* Anaylse les 2 image de moi
-       utils.loadImagePGM("sampleMove/me1.pgm", tampons.data[0]);
-        utils.loadImagePGM("sampleMove/me2.pgm", tampons.data[1]);
-        detectMovement(tampons.data[0], tampons.data[1], Camera);*/
