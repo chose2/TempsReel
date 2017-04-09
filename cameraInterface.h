@@ -3,6 +3,7 @@
 #include "timer.h"
 #include <ctime>
 #include <cstdlib>
+#include "rpiPWM1.h"
 
 enum {
     //Camera settings
@@ -41,6 +42,8 @@ class CameraInterface{
         Utils utils;
         raspicam::RaspiCam Camera;
         Timer timer;
+		rpiPWM1 servoMoteur;
+		float currentAngle; // from -90 to 90
 
         unsigned int nFramesCaptured;
 
@@ -85,6 +88,12 @@ class CameraInterface{
         }
         //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
         void settle(raspicam::RaspiCam &Camera){
+			servoMoteur.setFrequency(50.0);
+			servoMoteur.setCounts(1024);
+			servoMoteur.setDutyCycle(7.5);
+			servoMoteur.setMode(piPWM1::MSMODE);
+			usleep(500 000); //let the camera to be place to it's neutral position 1/2 second
+			currentAngle = 0.0f;
       		for(int i=0; i<100; i++){
         		this->Camera.grab();
         	}
@@ -177,8 +186,8 @@ public:
                 }
             }
         }
-        //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480)
-        if(totalMarked >= 3072){
+        //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480) et 80%
+        if(totalMarked >= 3072 && totalMarked < 245 760){
             blobs[currentblobIndex].moyX = totalX / totalMarked;
             std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){

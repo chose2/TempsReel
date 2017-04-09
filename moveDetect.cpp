@@ -15,7 +15,6 @@
 */
 #include <iostream>
 #include "cameraInterface.h"
-#include "rpiPWM1.h"
 #include <GL/glut.h>
 #include <cstdlib>
 using namespace std;
@@ -64,9 +63,6 @@ void idleGLScene()
 int main ( int argc,char **argv ) {
     Timer timer;
     CameraInterface camInterface(argc,argv);
-
-    rpiPWM1 pwm(50.0, 1024, 7.5, rpiPWM1::MSMODE);
-    usleep(2000000); //let the camera to be place to it's neutral position
 	
 	if(camInterface.UseHelperWindow){	//on devrait y faire un flag dans les arguments pour savoir si on utilise une fenetre de debug
 		cout <<"Demarre fenetre de debug"<<endl;
