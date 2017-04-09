@@ -31,11 +31,11 @@ const int MIDDLE = WIDTH / 2;
 const float FOV = 54.0f; //based on doc http://elinux.org/Rpi_Camera_Module#Technical_Parameters_.28v.2_board.29
 
 //servo settings
-const int MINPWM = 4,
-const int MAXPWM = 11,
+const int MINPWM = 4;
+const int MAXPWM = 11;
 const int PWMRANGE = MAXPWM - MINPWM;
-const int MINANGLE = -90,
-const int MAXANGLE = 90,
+const int MINANGLE = -90;
+const int MAXANGLE = 90;
 const int ANGLERANGE = MAXANGLE - MINANGLE;
 
 
