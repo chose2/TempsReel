@@ -38,6 +38,10 @@ const int MINANGLE = -75;
 const int MAXANGLE = 75;
 const int ANGLERANGE = MAXANGLE - MINANGLE;
 
+//Motion settings
+const int MINMOTIONSIZE = TAILLE_BLOC * 0.05f;
+const int MAXMOTIONSIZE = TAILLE_BLOC * 0.80f;
+
 
 struct Tampons {
 	unsigned char data[NBTAMPON][TAILLE_BLOC];
@@ -134,7 +138,7 @@ class CameraInterface{
 		}
 
 public:
-    bool UseHelperWindow = false;
+    bool UseHelperWindow = true;
 
     CameraInterface(int argc,char **argv){
         this->processCommandLine(argc, argv);
@@ -221,7 +225,7 @@ public:
             }
         }
         //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480) et 80%
-        if(totalMarked >= 3072 && totalMarked < 245760){
+        if(totalMarked >= MINMOTIONSIZE && totalMarked < MAXMOTIONSIZE){
             blobs[currentblobIndex].moyX = totalX / totalMarked;
             std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){
