@@ -34,8 +34,8 @@ const float FOV = 54.0f; //based on doc http://elinux.org/Rpi_Camera_Module#Tech
 const int MINPWM = 4;
 const int MAXPWM = 11;
 const int PWMRANGE = MAXPWM - MINPWM;
-const int MINANGLE = -90;
-const int MAXANGLE = 90;
+const int MINANGLE = -75;
+const int MAXANGLE = 75;
 const int ANGLERANGE = MAXANGLE - MINANGLE;
 
 
@@ -53,7 +53,7 @@ class CameraInterface{
         raspicam::RaspiCam Camera;
         Timer timer;
 		rpiPWM1 servoMoteur;
-		float currentAngle; // from -90 to 90
+		float currentAngle;
 
         unsigned int nFramesCaptured;
 
@@ -123,9 +123,18 @@ class CameraInterface{
 		{
 			return ((float)pos / WIDTH * FOV) - (FOV / 2);
 		}
+		
+		void setServoAngle(float angle)
+		{			
+			if(currentAngle + angle > MINANGLE && currentAngle + angle < MAXANGLE)
+			{
+				currentAngle += angle
+				servoMoteur.setDutyCycle(angleToPulseWidth(currentAngle));
+			}
+		}
 
 public:
-    bool UseHelperWindow = true;
+    bool UseHelperWindow = false;
 
     CameraInterface(int argc,char **argv){
         this->processCommandLine(argc, argv);
@@ -217,16 +226,18 @@ public:
             std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){
                 //compareBlob();
-                if(blobs[MAXBLOB - 1].moyX > blobs[0].moyX){
+                /*if(blobs[MAXBLOB - 1].moyX > blobs[0].moyX){
                     std::cout << " BLOB IS RIGHT " << " adjust middle :" << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff : " << (MIDDLE + blobs[MAXBLOB -1].moyX ) << std::endl;
                 }else if(blobs[MAXBLOB -1].moyX < blobs[0].moyX){
                     std::cout << " BLOB IS GOING LEFT " << " adjust middle " << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff :-"  <<  (MIDDLE - blobs[MAXBLOB -1].moyX)  << std::endl;     
                 }else{
                     std::cout << " BLOB IS GOING STILL " << std::endl;
-                }
+                }*/
 				
+				//setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
 				std::cout << "Current Angle = " << currentAngle << std::endl;
 				std::cout << "disered Angle = " << imagePositionToAngle(blobs[MAXBLOB -1].moyX) << std::endl;
+				std::cout << "disered pwm   = " << angleToPulseWidth(imagePositionToAngle(blobs[MAXBLOB -1].moyX)) << std::endl << std::endl;
 				
                 //Reset tableau de blob
                 currentblobIndex=0;
