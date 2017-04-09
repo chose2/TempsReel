@@ -12,7 +12,7 @@ enum {
     NBTAMPON=2,
     FOREGROUND = 255,
     BACKGROUND = 0,
-    TRESHOLD = 18,
+    TRESHOLD = 50,
     NOISEFILTER = 3,
 };
 
@@ -56,19 +56,19 @@ class CameraInterface{
         Utils utils;
         raspicam::RaspiCam Camera;
         Timer timer;
-		rpiPWM1 servoMoteur;
-		float currentAngle;
+	rpiPWM1 servoMoteur;
+	float currentAngle;
 
         unsigned int nFramesCaptured;
 
         Tampons tampons;
-		Tampons blackWhite;
+	Tampons blackWhite;
         size_t currentTamponIndex = 0;
 
         Blob blobs[MAXBLOB];
         size_t currentblobIndex = 0;
 		
-		bool firstFrame = true;
+	bool firstFrame = true;
 		
         /*
         * Process all suported options on the command line and inits the camera. 
@@ -227,22 +227,11 @@ public:
         //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480) et 80%
         if(totalMarked >= MINMOTIONSIZE && totalMarked < MAXMOTIONSIZE){
             blobs[currentblobIndex].moyX = totalX / totalMarked;
-            std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
+            //std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){
-                //compareBlob();
-                /*if(blobs[MAXBLOB - 1].moyX > blobs[0].moyX){
-                    std::cout << " BLOB IS RIGHT " << " adjust middle :" << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff : " << (MIDDLE + blobs[MAXBLOB -1].moyX ) << std::endl;
-                }else if(blobs[MAXBLOB -1].moyX < blobs[0].moyX){
-                    std::cout << " BLOB IS GOING LEFT " << " adjust middle " << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff :-"  <<  (MIDDLE - blobs[MAXBLOB -1].moyX)  << std::endl;     
-                }else{
-                    std::cout << " BLOB IS GOING STILL " << std::endl;
-                }*/
-				
+        	
 				setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
-				//std::cout << "Current Angle = " << currentAngle << std::endl;
-				//std::cout << "disered Angle = " << imagePositionToAngle(blobs[MAXBLOB -1].moyX) << std::endl;
-				//std::cout << "disered pwm   = " << angleToPulseWidth(imagePositionToAngle(blobs[MAXBLOB -1].moyX)) << std::endl << std::endl;
-				
+
                 //Reset tableau de blob
                 currentblobIndex=0;
             }else{
