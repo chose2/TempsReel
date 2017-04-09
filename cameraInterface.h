@@ -193,9 +193,9 @@ public:
             if(currentblobIndex == MAXBLOB - 1){
                 //compareBlob();
                 if(blobs[MAXBLOB - 1].moyX > blobs[0].moyX){
-                    std::cout << " BLOB IS RIGHT " << " adjust " <<  (MIDDLE + blobs[MAXBLOB -1].moyX ) << std::endl;
+                    std::cout << " BLOB IS RIGHT " << " adjust middle :" << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff : " << (MIDDLE + blobs[MAXBLOB -1].moyX ) << std::endl;
                 }else if(blobs[MAXBLOB -1].moyX < blobs[0].moyX){
-                    std::cout << " BLOB IS GOING LEFT " << " adjust minus " <<  (MIDDLE - blobs[MAXBLOB -1].moyX)  << std::endl;     
+                    std::cout << " BLOB IS GOING LEFT " << " adjust middle " << MIDDLE << " moyx : " << blobs[MAXBLOB -1].moyX << " diff :-"  <<  (MIDDLE - blobs[MAXBLOB -1].moyX)  << std::endl;     
                 }else{
                     std::cout << " BLOB IS GOING STILL " << std::endl;
                 }
