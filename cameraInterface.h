@@ -94,7 +94,7 @@ class CameraInterface{
             }
 
             this->Camera.setAWB_RB(utils.getParamVal("-awb_b",argc,argv ,1), utils.getParamVal("-awb_g",argc,argv ,1));
-            nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,100);
+            nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,1000);
         }
         //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
         void settle(raspicam::RaspiCam &Camera){
@@ -234,10 +234,10 @@ public:
                     std::cout << " BLOB IS GOING STILL " << std::endl;
                 }*/
 				
-				//setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
-				std::cout << "Current Angle = " << currentAngle << std::endl;
-				std::cout << "disered Angle = " << imagePositionToAngle(blobs[MAXBLOB -1].moyX) << std::endl;
-				std::cout << "disered pwm   = " << angleToPulseWidth(imagePositionToAngle(blobs[MAXBLOB -1].moyX)) << std::endl << std::endl;
+				setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
+				//std::cout << "Current Angle = " << currentAngle << std::endl;
+				//std::cout << "disered Angle = " << imagePositionToAngle(blobs[MAXBLOB -1].moyX) << std::endl;
+				//std::cout << "disered pwm   = " << angleToPulseWidth(imagePositionToAngle(blobs[MAXBLOB -1].moyX)) << std::endl << std::endl;
 				
                 //Reset tableau de blob
                 currentblobIndex=0;
