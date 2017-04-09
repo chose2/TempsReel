@@ -91,8 +91,8 @@ class CameraInterface{
 			servoMoteur.setFrequency(50.0);
 			servoMoteur.setCounts(1024);
 			servoMoteur.setDutyCycle(7.5);
-			servoMoteur.setMode(piPWM1::MSMODE);
-			usleep(500 000); //let the camera to be place to it's neutral position 1/2 second
+			servoMoteur.setMode(rpiPWM1::MSMODE);
+			usleep(500000); //let the camera to be place to it's neutral position 1/2 second
 			currentAngle = 0.0f;
       		for(int i=0; i<100; i++){
         		this->Camera.grab();
@@ -187,7 +187,7 @@ public:
             }
         }
         //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480) et 80%
-        if(totalMarked >= 3072 && totalMarked < 245 760){
+        if(totalMarked >= 3072 && totalMarked < 245760){
             blobs[currentblobIndex].moyX = totalX / totalMarked;
             std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
             if(currentblobIndex == MAXBLOB - 1){
