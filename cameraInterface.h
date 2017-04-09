@@ -6,12 +6,6 @@
 #include "rpiPWM1.h"
 
 enum {
-    //Camera settings
-	WIDTH = 640,
-	HEIGHT = 480,
-	TAILLE_BLOC = WIDTH * HEIGHT,
-    MIDDLE = WIDTH / 2,
-
 
     //Movement detection parameters
     MAXBLOB=3,
@@ -28,6 +22,22 @@ enum DIRECTION{
     RIGHT=3
 
 };
+
+//Camera settings
+const int WIDTH = 640;
+const int HEIGHT = 480;
+const int TAILLE_BLOC = WIDTH * HEIGHT;
+const int MIDDLE = WIDTH / 2;
+const float FOV = 54.0f; //based on doc http://elinux.org/Rpi_Camera_Module#Technical_Parameters_.28v.2_board.29
+
+//servo settings
+const int MINPWM = 4,
+const int MAXPWM = 11,
+const int PWMRANGE = MAXPWM - MINPWM;
+const int MINANGLE = -90,
+const int MAXANGLE = 90,
+const int ANGLERANGE = MAXANGLE - MINANGLE;
+
 
 struct Tampons {
 	unsigned char data[NBTAMPON][TAILLE_BLOC];
@@ -98,6 +108,21 @@ class CameraInterface{
         		this->Camera.grab();
         	}
         }
+		
+		float pulseWidthToAngle(float pw) // return angle from -90 to 90
+		{
+			return ((pw - MINPWM) / (MAXPWM - MINPWM) * ANGLERANGE) - (ANGLERANGE / 2);
+		}
+		
+		float angleToPulseWidth(float angle) //return pulse width from 4 to 11
+		{
+			return (angle + (ANGLERANGE / 2)) / ANGLERANGE * PWMRANGE + MINPWM;
+		}
+		
+		float imagePositionToAngle(int pos) // return float from -27 to 27
+		{
+			return ((float)pos / WIDTH * FOV) - (FOV / 2);
+		}
 
 public:
     bool UseHelperWindow = true;
@@ -199,6 +224,10 @@ public:
                 }else{
                     std::cout << " BLOB IS GOING STILL " << std::endl;
                 }
+				
+				std::cout << "Current Angle = " << currentAngle << std::endl;
+				std::cout << "disered Angle = " << imagePositionToAngle(blobs[MAXBLOB -1].moyX) << std::endl;
+				
                 //Reset tableau de blob
                 currentblobIndex=0;
             }else{
