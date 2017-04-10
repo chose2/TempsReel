@@ -27,6 +27,7 @@ unsigned char data[4][TAILLE_BLOC];
 
 void DrawGLScene()
 {
+    globalCam->runLoop();
     globalCam->ShowMeWhatYouGot(0,data[0]);
     globalCam->ShowMeWhatYouGot(1,data[1]);
     globalCam->ShowMeWhatYouGotDetected(0,data[2]);
@@ -91,8 +92,8 @@ void DrawGLScene()
     glBegin(GL_QUADS);
     glTexCoord2i(0, 0); glVertex2i(WIDTH / 2, HEIGHT / 2);
     glTexCoord2i(0, 1); glVertex2i(WIDTH / 2, HEIGHT);
-    glTexCoord2i(1, 1); glVertex2i(WIDTH / 2, HEIGHT);
-    glTexCoord2i(1, 0); glVertex2i(WIDTH / 2, HEIGHT / 2);
+    glTexCoord2i(1, 1); glVertex2i(WIDTH, HEIGHT);
+    glTexCoord2i(1, 0); glVertex2i(WIDTH, HEIGHT / 2);
     glEnd();
     
     glDisable(GL_TEXTURE_2D);
@@ -105,12 +106,10 @@ void DrawGLScene()
 
 void idleGLScene()
 {
-    globalCam->runLoop();
     glutPostRedisplay();
 }
 
 int main ( int argc,char **argv ) {
-    Timer timer;
     CameraInterface camInterface(argc,argv);
 	
 	if(camInterface.UseHelperWindow){

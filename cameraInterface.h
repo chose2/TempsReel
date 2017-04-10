@@ -1,9 +1,12 @@
 #include "src/raspicam.h"
 #include "utils.h"
-#include "timer.h"
 #include <ctime>
 #include <cstdlib>
 #include "rpiPWM1.h"
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
 
 enum {
 
@@ -12,10 +15,9 @@ enum {
     NBTAMPON=2,
     FOREGROUND = 255,
     BACKGROUND = 0,
-    TRESHOLD = 20,
+    TRESHOLD = 25,
     NOISEFILTER = 3,
 };
-
 
 //Camera settings
 const int WIDTH = 640;
@@ -33,203 +35,159 @@ const int MAXANGLE = 75;
 const int ANGLERANGE = MAXANGLE - MINANGLE;
 
 //Motion settings
-const int MINMOTIONSIZE = TAILLE_BLOC * 0.03f;
+const int MINMOTIONSIZE = TAILLE_BLOC * 0.01f;
 const int MAXMOTIONSIZE = TAILLE_BLOC * 0.65f;
 
-
 struct Tampons {
-	unsigned char data[NBTAMPON][TAILLE_BLOC];
+    unsigned char data[NBTAMPON][TAILLE_BLOC];
 };
 
 struct Blob {
-	unsigned int moyX=0 ;
+    unsigned int moyX=0 ;
 };
 
 class CameraInterface{
-    private:
-        Utils utils;
-        raspicam::RaspiCam Camera;
-        Timer timer;
-	rpiPWM1 servoMoteur;
-	float currentAngle;
+private:
+    Utils utils;
+    raspicam::RaspiCam Camera;
+    rpiPWM1 servoMoteur;
+    float currentAngle;
 
-        unsigned int nFramesCaptured;
+    unsigned int nFramesCaptured;
 
-        Tampons tampons;
-	Tampons blackWhite;
-        size_t currentTamponIndex = 0;
+    Tampons tampons;
+    Tampons blackWhite;
+    size_t currentTamponIndex = 0;
 
-        Blob blobs[MAXBLOB];
-        size_t currentblobIndex = 0;
-		
-	bool firstFrame = true;
-		
-        /*
-        * Process all suported options on the command line and inits the camera. 
-        * Currently defaults to black and white (only suported algo right now)
-        */
-        void processCommandLine ( int argc,char **argv) {
-            this->Camera.setWidth ( WIDTH );
-            this->Camera.setHeight (HEIGHT );
-            this->Camera.setBrightness ( utils.getParamVal ( "-br",argc,argv,50 ) );
-            this->Camera.setSharpness ( utils.getParamVal ( "-sh",argc,argv,0 ) );
-            this->Camera.setContrast ( utils.getParamVal ( "-co",argc,argv,0 ) );
-            this->Camera.setSaturation ( utils.getParamVal ( "-sa",argc,argv,0 ) );
-            this->Camera.setShutterSpeed( utils.getParamVal ( "-ss",argc,argv,0 ) );
-            this->Camera.setISO ( utils.getParamVal ( "-iso",argc,argv ,400 ) );
+    Blob blobs[MAXBLOB];
+    size_t currentblobIndex = 0;
+    
+    bool firstFrame = true;
+    
+    /*
+    * Process all suported options on the command line and inits the camera. 
+    * Currently defaults to black and white (only suported algo right now)
+    */
+    void processCommandLine ( int argc,char **argv) {
+        this->Camera.setWidth ( WIDTH );
+        this->Camera.setHeight (HEIGHT );
+        this->Camera.setBrightness ( utils.getParamVal ( "-br",argc,argv,50 ) );
+        this->Camera.setSharpness ( utils.getParamVal ( "-sh",argc,argv,0 ) );
+        this->Camera.setContrast ( utils.getParamVal ( "-co",argc,argv,0 ) );
+        this->Camera.setSaturation ( utils.getParamVal ( "-sa",argc,argv,0 ) );
+        this->Camera.setShutterSpeed( utils.getParamVal ( "-ss",argc,argv,0 ) );
+        this->Camera.setISO ( utils.getParamVal ( "-iso",argc,argv ,400 ) );
+        
+        if ( utils.findParam ( "-vs",argc,argv ) !=-1 )
+            this->Camera.setVideoStabilization ( true );
             
-            if ( utils.findParam ( "-vs",argc,argv ) !=-1 )
-                this->Camera.setVideoStabilization ( true );
-                
-            if ( utils.findParam ( "-debug",argc,argv ) !=-1 )
-                this->UseHelperWindow = true;
-            
-            this->Camera.setExposureCompensation ( utils.getParamVal ( "-ec",argc,argv ,0 ) );
+        if ( utils.findParam ( "-debug",argc,argv ) !=-1 )
+            this->UseHelperWindow = true;
+        
+        this->Camera.setExposureCompensation ( utils.getParamVal ( "-ec",argc,argv ,0 ) );
 
-            this->Camera.setFormat(raspicam::RASPICAM_FORMAT_GRAY);
-            
+        this->Camera.setFormat(raspicam::RASPICAM_FORMAT_GRAY);
+        
 
-            if ( utils.findParam ( "-yuv",argc,argv ) !=-1 ) {
+        if ( utils.findParam ( "-yuv",argc,argv ) !=-1 ) 
             this->Camera.setFormat(raspicam::RASPICAM_FORMAT_YUV420);
- 
-            }
 
-            this->Camera.setAWB_RB(utils.getParamVal("-awb_b",argc,argv ,1), utils.getParamVal("-awb_g",argc,argv ,1));
-            nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,300);
+        this->Camera.setAWB_RB(utils.getParamVal("-awb_b",argc,argv ,1), utils.getParamVal("-awb_g",argc,argv ,1));
+        nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,300);
+    }
+    
+    //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
+    void settle(raspicam::RaspiCam &Camera){
+        servoMoteur.setFrequency(50.0);
+        servoMoteur.setCounts(1024);
+        servoMoteur.setDutyCycle(7.5);
+        servoMoteur.setMode(rpiPWM1::MSMODE);
+        usleep(500000); //let the camera to be place to it's neutral position 1/2 second
+        currentAngle = 0.0f;
+        
+        for(int i=0; i<100; i++){
+            this->Camera.grab();
         }
-        //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
-        void settle(raspicam::RaspiCam &Camera){
-			servoMoteur.setFrequency(50.0);
-			//servoMoteur.setCounts(512);
-			servoMoteur.setCounts(1024);
-			servoMoteur.setDutyCycle(7.5);
-			servoMoteur.setMode(rpiPWM1::MSMODE);
-			usleep(500000); //let the camera to be place to it's neutral position 1/2 second
-			currentAngle = 0.0f;
-      		for(int i=0; i<100; i++){
-        		this->Camera.grab();
-        	}
+    }
+    
+    float pulseWidthToAngle(float pw){ // return angle from -90 to 90
+        return ((pw - MINPWM) / (MAXPWM - MINPWM) * ANGLERANGE) - (ANGLERANGE / 2);
+    }
+    
+    float angleToPulseWidth(float angle){ //return pulse width from 4 to 11
+        return (angle + (ANGLERANGE / 2)) / ANGLERANGE * PWMRANGE + MINPWM;
+    }
+    
+    float imagePositionToAngle(int pos){ // return float from -27 to 27
+        return ((float)pos / WIDTH * FOV) - (FOV / 2);
+    }
+    
+    void setServoAngle(float angle){            
+        if(currentAngle + angle > MINANGLE && currentAngle + angle < MAXANGLE) {
+            currentAngle += angle;
+            servoMoteur.setDutyCycle(angleToPulseWidth(currentAngle));
+            //usleep(60000);//make sure camera don't grab camera movement
         }
-		
-		float pulseWidthToAngle(float pw) // return angle from -90 to 90
-		{
-			return ((pw - MINPWM) / (MAXPWM - MINPWM) * ANGLERANGE) - (ANGLERANGE / 2);
-		}
-		
-		float angleToPulseWidth(float angle) //return pulse width from 4 to 11
-		{
-			return (angle + (ANGLERANGE / 2)) / ANGLERANGE * PWMRANGE + MINPWM;
-		}
-		
-		float imagePositionToAngle(int pos) // return float from -27 to 27
-		{
-			return ((float)pos / WIDTH * FOV) - (FOV / 2);
-		}
-		
-		void setServoAngle(float angle)
-		{			
-			if(currentAngle + angle > MINANGLE && currentAngle + angle < MAXANGLE)
-			{
-				currentAngle += angle;
-				servoMoteur.setDutyCycle(angleToPulseWidth(currentAngle));
-				firstFrame = true;
-				//usleep(60000);//make sure camera don't grab camera movement
-			}
-		}
+    }
 
 public:
     bool UseHelperWindow = false;
 
     CameraInterface(int argc,char **argv){
-        this->processCommandLine(argc, argv);
-  
+        this->processCommandLine(argc, argv); 
     }
 
-	bool init()	{
-		if ( this->Camera.open() ) {
-        	settle(Camera);	
-			std::cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<std::endl;			
-			return true;
-        }else{
-            std::cout <<"Error opening this->camera, skipping capture loop"<<std::endl;
-			return false;
-        }
-	}
-
-	void ShowMeWhatYouGot(int index, unsigned char *outData){		
-		for(int i = 0; i < TAILLE_BLOC; ++i){
-			outData[i] = tampons.data[index][i];
-}	}
-	void ShowMeWhatYouGotDetected(int index, unsigned char *outData){		
-		for(int i = 0; i < TAILLE_BLOC; ++i){
-			outData[i] = blackWhite.data[index][i];
-
-}	}
-	
-	void release()	{
-		this->Camera.release();
-	}
-	
-    void loop(){
-     	size_t i=0;  
+    bool init()    {
         if ( this->Camera.open() ) {
-        	settle(Camera);	
-                std::cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<std::endl;
-                timer.start();
-                do{
- 		this->Camera.grab();
-		if(firstFrame){
-			this->Camera.retrieve ( tampons.data[0] );
-			firstFrame = false;
-}else{
-			this->Camera.retrieve ( tampons.data[1] );
-
-			firstFrame = true;
-			//detect le movement dans lancient shot et l'actuel
-			 detectMovement(tampons.data[0], tampons.data[1], Camera);
-
-
-		//cur	
-		}	
-
-                }while(++i<nFramesCaptured || nFramesCaptured==0);
-
-                timer.end();
-                std::cout << timer.getSecs()<< " seconds for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / timer.getSecs() ) <<std::endl;
-                this->Camera.release();		
+            settle(Camera);    
+            cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<endl;            
+            return true;
         }else{
-            std::cout <<"Error opening this->camera, skipping capture loop"<<std::endl;
+            cout <<"Error opening this->camera, skipping capture loop"<<endl;
+            return false;
         }
-
     }
-	//minimaliste loop
-	void runLoop() {
-		/*this->Camera.grab();
-		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
 
-		if(!firstFrame){
-			//detect le movement dans lancient shot et l'actuel
-			 detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
-							tampons.data[currentTamponIndex], 
-							Camera);
-
-		firstFrame = false;
-		currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);	}*/
-		this->Camera.grab();
-		if(firstFrame){
-			this->Camera.retrieve ( tampons.data[0] );
-			firstFrame = false;
-		}else{
-			this->Camera.retrieve ( tampons.data[1] );
-			firstFrame = true;
-
-			//detect le movement dans lancient shot et l'actuel
-			 detectMovement(tampons.data[0], tampons.data[1], Camera);
-
-		}
-		//currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);	}
-	}
-	
+    void ShowMeWhatYouGot(int index, unsigned char *outData){ 
+        copy(tampons.data[index], tampons.data[index] + TAILLE_BLOC, outData);
+    }
+    void ShowMeWhatYouGotDetected(int index, unsigned char *outData){
+        copy(blackWhite.data[index], blackWhite.data[index] + TAILLE_BLOC, outData);
+    }
+    
+    void release()    {
+        this->Camera.release();
+    }
+    
+    void loop(){
+        size_t i=0;  
+        if ( init() ) {
+        
+            auto pre = high_resolution_clock::now();
+            do{
+                runLoop();
+            }while(++i<nFramesCaptured || nFramesCaptured==0);
+            auto post = high_resolution_clock::now();
+            
+            cout << duration_cast<microseconds>(post - pre).count() << " us for "<< nFramesCaptured<< "  frames : FPS " << ( ( float ) ( nFramesCaptured ) / (duration_cast<microseconds>(post - pre).count() /1000000) ) <<endl;
+            this->Camera.release();        
+        }
+    }
+    
+    //minimaliste loop
+    void runLoop() {
+        this->Camera.grab();
+        if(firstFrame){
+            this->Camera.retrieve ( tampons.data[0] );
+            firstFrame = false;
+        }else{
+            this->Camera.retrieve ( tampons.data[1] );
+            firstFrame = true;
+            
+            detectMovement(tampons.data[0], tampons.data[1], Camera);
+        }        
+    }
+    
      /*
      *Detection dun groupe de MINSIZEBLOB de large minimum. De haut en bas vers la droite
      */
@@ -247,10 +205,10 @@ public:
         //Si une detection de mouvement prenant au moins 1% de limage (0.01 * 640*480) et 80%
         if(totalMarked >= MINMOTIONSIZE && totalMarked < MAXMOTIONSIZE){
             blobs[currentblobIndex].moyX = totalX / totalMarked;
-            //std::cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << std::endl;
+            //cout << "BLOB SAVED AT  " << currentblobIndex << " SIZE OF " << totalMarked << " MOY OF " << blobs[currentblobIndex].moyX << endl;
             if(currentblobIndex == MAXBLOB - 1){
-        	
-				setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
+            
+                setServoAngle(imagePositionToAngle(blobs[MAXBLOB -1].moyX));
 
                 //Reset tableau de blob
                 currentblobIndex=0;
@@ -267,8 +225,6 @@ public:
         int n = (NOISEFILTER - 1) /2;
         unsigned int marked = 0;
         unsigned int totalMarked = 0;        
-
-
 
         //Tampons output;
         //first-pass: difference and threshold filter (mark the pixels that are changed between two frames)
@@ -310,7 +266,6 @@ public:
 
  
         if(totalMarked !=0){
-            //std::cout << " BLOB detected Marked: " << totalMarked << std::endl;
             detectBlob(blackWhite.data[1]);
         }
     }
