@@ -8,20 +8,14 @@
 enum {
 
     //Movement detection parameters
-    MAXBLOB=3,
+    MAXBLOB=1,
     NBTAMPON=2,
     FOREGROUND = 255,
     BACKGROUND = 0,
-    TRESHOLD = 50,
+    TRESHOLD = 20,
     NOISEFILTER = 3,
 };
 
-enum DIRECTION{
-    STILL = 1,
-    LEFT=2,
-    RIGHT=3
-
-};
 
 //Camera settings
 const int WIDTH = 640;
@@ -39,8 +33,8 @@ const int MAXANGLE = 75;
 const int ANGLERANGE = MAXANGLE - MINANGLE;
 
 //Motion settings
-const int MINMOTIONSIZE = TAILLE_BLOC * 0.05f;
-const int MAXMOTIONSIZE = TAILLE_BLOC * 0.80f;
+const int MINMOTIONSIZE = TAILLE_BLOC * 0.03f;
+const int MAXMOTIONSIZE = TAILLE_BLOC * 0.65f;
 
 
 struct Tampons {
@@ -48,7 +42,7 @@ struct Tampons {
 };
 
 struct Blob {
-	unsigned int topX=0, topY=0, moyX=0 ;
+	unsigned int moyX=0 ;
 };
 
 class CameraInterface{
@@ -86,6 +80,9 @@ class CameraInterface{
             
             if ( utils.findParam ( "-vs",argc,argv ) !=-1 )
                 this->Camera.setVideoStabilization ( true );
+                
+            if ( utils.findParam ( "-debug",argc,argv ) !=-1 )
+                this->UseHelperWindow = true;
             
             this->Camera.setExposureCompensation ( utils.getParamVal ( "-ec",argc,argv ,0 ) );
 
@@ -98,11 +95,12 @@ class CameraInterface{
             }
 
             this->Camera.setAWB_RB(utils.getParamVal("-awb_b",argc,argv ,1), utils.getParamVal("-awb_g",argc,argv ,1));
-            nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,1000);
+            nFramesCaptured  = utils.getParamVal("-nframes",argc,argv,300);
         }
         //La camera semble besoin d'avoir un certain nombre de grab/retreive avant darriver a un bon niveau dexposition
         void settle(raspicam::RaspiCam &Camera){
 			servoMoteur.setFrequency(50.0);
+			//servoMoteur.setCounts(512);
 			servoMoteur.setCounts(1024);
 			servoMoteur.setDutyCycle(7.5);
 			servoMoteur.setMode(rpiPWM1::MSMODE);
@@ -134,11 +132,13 @@ class CameraInterface{
 			{
 				currentAngle += angle;
 				servoMoteur.setDutyCycle(angleToPulseWidth(currentAngle));
+				firstFrame = true;
+				//usleep(60000);//make sure camera don't grab camera movement
 			}
 		}
 
 public:
-    bool UseHelperWindow = true;
+    bool UseHelperWindow = false;
 
     CameraInterface(int argc,char **argv){
         this->processCommandLine(argc, argv);
@@ -156,11 +156,15 @@ public:
         }
 	}
 
-	void ShowMeWhatYouGot(unsigned char *outData){		
+	void ShowMeWhatYouGot(int index, unsigned char *outData){		
 		for(int i = 0; i < TAILLE_BLOC; ++i){
-			outData[i] = blackWhite.data[1][i];
-		}
-	}
+			outData[i] = tampons.data[index][i];
+}	}
+	void ShowMeWhatYouGotDetected(int index, unsigned char *outData){		
+		for(int i = 0; i < TAILLE_BLOC; ++i){
+			outData[i] = blackWhite.data[index][i];
+
+}	}
 	
 	void release()	{
 		this->Camera.release();
@@ -173,17 +177,20 @@ public:
                 std::cout <<"Connected to this->camera ="<<this->Camera.getId() <<" bufs=" << this->Camera.getImageBufferSize( )<<std::endl;
                 timer.start();
                 do{
-                    this->Camera.grab();
-                    //Met l'image caupter dans le tampon actuel
-                    this->Camera.retrieve ( tampons.data[currentTamponIndex] );
+ 		this->Camera.grab();
+		if(firstFrame){
+			this->Camera.retrieve ( tampons.data[0] );
+			firstFrame = false;
+}else{
+			this->Camera.retrieve ( tampons.data[1] );
 
-                    if(i != 0){
-                        //detect le movement dans lancient shot et l'actuel
-                         detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
-                                        tampons.data[currentTamponIndex], 
-                                        Camera);
-                    }
-                    currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);
+			firstFrame = true;
+			//detect le movement dans lancient shot et l'actuel
+			 detectMovement(tampons.data[0], tampons.data[1], Camera);
+
+
+		//cur	
+		}	
 
                 }while(++i<nFramesCaptured || nFramesCaptured==0);
 
@@ -197,7 +204,7 @@ public:
     }
 	//minimaliste loop
 	void runLoop() {
-		this->Camera.grab();
+		/*this->Camera.grab();
 		this->Camera.retrieve ( tampons.data[currentTamponIndex] );
 
 		if(!firstFrame){
@@ -205,9 +212,22 @@ public:
 			 detectMovement(tampons.data[currentTamponIndex == 0 ? NBTAMPON-1 : currentTamponIndex - 1], 
 							tampons.data[currentTamponIndex], 
 							Camera);
-		}
+
 		firstFrame = false;
-		currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);
+		currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);	}*/
+		this->Camera.grab();
+		if(firstFrame){
+			this->Camera.retrieve ( tampons.data[0] );
+			firstFrame = false;
+		}else{
+			this->Camera.retrieve ( tampons.data[1] );
+			firstFrame = true;
+
+			//detect le movement dans lancient shot et l'actuel
+			 detectMovement(tampons.data[0], tampons.data[1], Camera);
+
+		}
+		//currentTamponIndex = (currentTamponIndex == NBTAMPON -1 ? 0 : currentTamponIndex + 1);	}
 	}
 	
      /*
