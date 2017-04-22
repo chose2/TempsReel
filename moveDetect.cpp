@@ -1,3 +1,6 @@
+/*Gabriel Gagné
+Danny Groleau
+*/
 /*
     Usage:
     [-help shows this help]
