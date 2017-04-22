@@ -1,3 +1,6 @@
+/*Gabriel Gagné
+Danny Groleau
+*/
 #include "src/raspicam.h"
 #include "utils.h"
 #include <ctime>
