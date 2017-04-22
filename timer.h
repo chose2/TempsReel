@@ -1,4 +1,6 @@
-
+/*Gabriel Gagné
+Danny Groleau
+*/
 //timer functions
 #include <sys/time.h>
 #include <unistd.h>
