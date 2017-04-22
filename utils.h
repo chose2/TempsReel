@@ -1,3 +1,6 @@
+/*Gabriel Gagné
+Danny Groleau
+*/
 #include <iostream>
 #include "src/raspicam.h"
 #include <fstream>
